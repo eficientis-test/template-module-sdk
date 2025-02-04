@@ -1,0 +1,25 @@
+{
+  "name": "@eficientis-test/template-module-sdk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "generate-plugin": "node lib/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eficientis-test/template-module-sdk.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "peerDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "typescript": "^5.7.3"
+  }
+}
