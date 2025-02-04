@@ -1,31 +1,42 @@
-name: Publish Template Module to GitHub Packages
+name: Build & Publish SDK
 
 on:
   push:
     branches:
       - main
+  release:
+    types: [created]
 
 jobs:
-  publish:
+  build-and-publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
-
+      packages: write  # Asegura que puede publicar paquetes
     steps:
-      - name: Checkout code
+      - name: 🛎️ Checkout del código
         uses: actions/checkout@v3
 
-      - name: Setup .npmrc
+      - name: 🔧 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com/'
+          scope: '@eficientis-test'
+
+      - name: 📦 Instalar dependencias
+        run: npm install
+
+      - name: 🏗️ Compilar TypeScript
+        run: npm run build
+
+      - name: 🚀 Configurar .npmrc para autenticación
         run: |
           echo "@eficientis-test:registry=https://npm.pkg.github.com" > ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.TOKEN_GH }}" >> ~/.npmrc
+          cat ~/.npmrc  # Verifica que se creó correctamente
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build TypeScript
-        run: npm run build
-
-      - name: Publish to GitHub Packages
+      - name: 🚀 Publicar en GitHub Packages
         run: npm publish --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.TOKEN_GH }}
