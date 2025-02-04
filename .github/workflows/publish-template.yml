@@ -19,7 +19,7 @@ jobs:
       - name: Setup .npmrc
         run: |
           echo "@eficientis-test:registry=https://npm.pkg.github.com" > ~/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN }}" >> ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.TOKEN_GH }}" >> ~/.npmrc
 
       - name: Install Dependencies
         run: npm install
