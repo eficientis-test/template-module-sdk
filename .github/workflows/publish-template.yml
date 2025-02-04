@@ -33,8 +33,7 @@ jobs:
       - name: 🚀 Configurar .npmrc para autenticación
         run: |
           echo "@eficientis-test:registry=https://npm.pkg.github.com" > ~/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.TOKEN_GH }}" >> ~/.npmrc
-          cat ~/.npmrc  # Verifica que se creó correctamente
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
 
       - name: 🛠️ Fix package.json errors
         run: npm pkg fix
@@ -42,4 +41,4 @@ jobs:
       - name: 🚀 Publicar en GitHub Packages
         run: npm publish --access=public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.TOKEN_GH }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
