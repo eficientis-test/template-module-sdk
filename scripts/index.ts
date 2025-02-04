@@ -60,25 +60,40 @@ fs.writeFileSync(
 );
 
 // Crear contenido base de `domain`
-const domainContent = `
+const domainContentObject = `
+import { Collection } from 'fireorm';
+import { Field, ID, InputType, ObjectType } from 'type-graphql';
+
+@ObjectType()
+@Collection('${formattedName}')
 export class ${formattedName} {
-  id!: string;
+	@Field(() => ID) id!: string;
   constructor() {}
 }
-
-export interface ${formattedName}Repository {
-  find(id: string): Promise<${formattedName}>;
-  save(entity: ${formattedName}): Promise<boolean>;
-  remove(id: string): Promise<boolean>;
+  
+@InputType()
+export class ${formattedName}Dto {
+	@Field(() => ID) id!: string;
+  constructor() {}
 }
 `;
 fs.writeFileSync(
   path.join(pluginDir, "domain", `${formattedName}.ts`),
-  domainContent
+  domainContentObject
 );
+
+const domainContentRepository = `
+import { ${formattedName}, ${formattedName}Dto } from './${formattedName}';
+
+export interface ${formattedName}Repository {
+  find(id: string): Promise<${formattedName}>;
+  save(entity: ${formattedName}Dto): Promise<boolean>;
+  remove(id: string): Promise<boolean>;
+}
+`;
 fs.writeFileSync(
   path.join(pluginDir, "domain", `${formattedName}Repository.ts`),
-  domainContent
+  domainContentRepository
 );
 
 // Crear contenido base de `infrastructure`
