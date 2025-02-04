@@ -1,7 +1,8 @@
+#!/usr/bin/env node
+
 import * as fs from "fs";
 import * as path from "path";
 
-// Obtener el nombre del plugin desde el argumento de la terminal
 const pluginName: string = process.argv[2];
 
 if (!pluginName) {
