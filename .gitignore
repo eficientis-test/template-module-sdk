@@ -132,3 +132,5 @@ dist
 
 # Source
 src/
+
+**-lock.json
