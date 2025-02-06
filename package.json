@@ -1,6 +1,6 @@
 {
   "name": "@eficientis-test/template-module-sdk",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Template module SDK",
   "main": "lib/index.js",
   "type": "module",
