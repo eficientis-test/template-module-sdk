@@ -2,12 +2,18 @@
   "compilerOptions": {
     "outDir": "./lib",
     "rootDir": "./scripts",
-    "module": "NodeNext",
-    "target": "es2017",
-    "moduleResolution": "NodeNext",
-    "strict": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "sourceMap": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "strict": true,
+    "module": "commonjs",
+    "target": "es2017",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
   },
   "include": ["scripts/**/*.ts"],
   "exclude": ["node_modules", "lib", "dist"]

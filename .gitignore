@@ -130,7 +130,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Source
-src/
+# Directories
+project/
 
 **-lock.json

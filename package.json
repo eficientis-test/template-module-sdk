@@ -1,15 +1,16 @@
 {
   "name": "@eficientis-test/template-module-sdk",
-  "version": "1.0.4",
+  "version": "1.0.0",
   "description": "Template module SDK",
   "main": "lib/index.js",
-  "type": "module",
   "bin": {
     "generate-plugin": "lib/index.js"
   },
   "scripts": {
+    "clean": "rmdir /s /q lib",
     "build": "tsc",
-    "generate-plugin": "node lib/index.js"
+    "generate-plugin": "node lib/index.js",
+    "publish:script": "npm publish --access=public"
   },
   "repository": {
     "type": "git",
