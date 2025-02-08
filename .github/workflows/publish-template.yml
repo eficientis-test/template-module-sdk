@@ -35,9 +35,6 @@ jobs:
           echo "@eficientis-test:registry=https://npm.pkg.github.com" > ~/.npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
 
-      - name: 🛠️ Fix package.json errors
-        run: npm pkg fix
-
       - name: 🚀 Publicar en GitHub Packages
         run: npm publish --access=public
         env:
