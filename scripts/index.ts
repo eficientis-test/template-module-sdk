@@ -52,9 +52,12 @@ const functionsPackageJson = {
   engines: {
     node: "20",
   },
+  publishConfig: {
+    registry: "https://npm.pkg.github.com/",
+  },
   main: "lib/index.js",
   dependencies: {
-    "@eficientis-test/core": "1.0.0",
+    "@eficientis-test/core": "1.0.6",
     "apollo-server-core": "^3.13.0",
     "apollo-server-express": "^3.13.0",
     "class-transformer": "^0.5.1",
@@ -82,7 +85,6 @@ const functionsPackageJson = {
     typescript: "^5.3.3",
     "typescript-coverage-report": "^0.8.0",
   },
-  private: true,
 };
 
 fs.writeFileSync(
@@ -92,7 +94,7 @@ fs.writeFileSync(
 
 const functionsTsconfigJson = {
   compilerOptions: {
-    module: "commonjs",
+    module: "Node16",
     noImplicitReturns: true,
     noUnusedLocals: true,
     outDir: "./lib",
@@ -101,8 +103,10 @@ const functionsTsconfigJson = {
     esModuleInterop: true,
     strict: true,
     target: "es2017",
-    moduleResolution: "node",
+    moduleResolution: "node16",
     resolveJsonModule: true,
+    allowSyntheticDefaultImports: true,
+    types: ["node"],
     emitDecoratorMetadata: true,
     experimentalDecorators: true,
     skipLibCheck: true,
@@ -306,81 +310,6 @@ export default class ${formattedName}Plugin implements PluginContract {
 }
 `;
 fs.writeFileSync(path.join(pluginDir, "index.ts"), indexContent);
-
-const packageJsonContent = {
-  name: `@eficientis-test/${pluginName.toLowerCase()}`,
-  version: "1.0.0",
-  description: "",
-  main: "lib/index.js",
-  type: "module",
-  repository: {
-    type: "git",
-    url: "https://github.com/eficientis-test/backend-plugin-architecture.git",
-  },
-  publishConfig: {
-    registry: "https://npm.pkg.github.com/",
-  },
-  dependencies: {
-    "firebase-admin": "^13.0.2",
-    "type-graphql": "^1.1.1",
-    fireorm: "^0.23.3",
-  },
-};
-
-fs.writeFileSync(
-  path.join(pluginDir, "package.json"),
-  JSON.stringify(packageJsonContent, null, 2)
-);
-
-// Crear `.gitignore`
-const gitignoreContent = `# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
-
-# Diagnostic reports
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Dependency directories
-node_modules/
-jspm_packages/
-
-# TypeScript cache
-*.tsbuildinfo
-
-# Optional caches
-.npm
-.eslintcache
-.stylelintcache
-
-# Output directories
-lib/
-dist/
-.cache/
-.parcel-cache
-.next/
-out/
-.nuxt/
-
-# Miscellaneous
-.vscode-test
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
-`;
-fs.writeFileSync(path.join(pluginDir, ".gitignore"), gitignoreContent);
 
 // Generar contenido base de application
 const applicationContent = `import { Resolver } from 'type-graphql';
