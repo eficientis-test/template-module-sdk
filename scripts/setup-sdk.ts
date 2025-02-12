@@ -3,22 +3,9 @@
 import * as fs from "fs";
 import * as path from "path";
 
-const pluginName: string = process.argv[2];
-
-if (!pluginName) {
-  console.error("❌ Debes proporcionar un nombre para el plugin.");
-  process.exit(1);
-}
-
-const formattedName = pluginName.charAt(0).toUpperCase() + pluginName.slice(1);
 const baseDir = path.join(process.cwd(), "project");
 const functionsDir = path.join(baseDir, "functions");
 const srcDir = path.join(functionsDir, "src");
-const pluginDir = path.join(
-  functionsDir,
-  "src/plugins",
-  pluginName.toLowerCase()
-);
 const configDir = path.join(functionsDir, "src/config");
 
 // Crear estructura de carpetas base del proyecto si no existe
@@ -269,124 +256,6 @@ const functionsEslint = `module.exports = {
 
 fs.writeFileSync(path.join(functionsDir, ".eslintrc.js"), functionsEslint);
 
-// Crear estructura de carpetas dentro de `src/plugins/{plugin}`
-const folders = ["application", "domain", "infrastructure"];
-folders.forEach((folder) =>
-  fs.mkdirSync(path.join(pluginDir, folder), { recursive: true })
-);
-
-// Actualizar plugins.config.json dinámicamente
-const pluginsConfigPath = path.join(configDir, "plugins.config.json");
-interface PluginsConfig {
-  activePlugins: string[];
-}
-
-let pluginsConfig: PluginsConfig = { activePlugins: [] };
-if (fs.existsSync(pluginsConfigPath)) {
-  pluginsConfig = JSON.parse(fs.readFileSync(pluginsConfigPath, "utf-8"));
-}
-if (!pluginsConfig.activePlugins.includes(pluginName)) {
-  pluginsConfig.activePlugins.push(pluginName.toLowerCase());
-}
-fs.writeFileSync(pluginsConfigPath, JSON.stringify(pluginsConfig, null, 2));
-
-// Crear archivos base del plugin
-const indexContent = `import { EventBus } from '@eficientis-test/core/EventBus';
-import { PluginContract } from '@eficientis-test/core/PluginContract';
-
-export default class ${formattedName}Plugin implements PluginContract {
-  name = '${formattedName}Plugin';
-  private active = true;
-
-  constructor(eventBus: EventBus) {}
-
-  init(): void {
-    console.log(\`[${formattedName}Plugin] initialized\`);
-  }
-
-  isActive(): boolean {
-    return this.active;
-  }
-}
-`;
-fs.writeFileSync(path.join(pluginDir, "index.ts"), indexContent);
-
-// Generar contenido base de application
-const applicationContent = `import { Resolver } from 'type-graphql';
-
-@Resolver()
-export class ${formattedName}Resolver {
-  constructor() {}
-}`;
-fs.writeFileSync(
-  path.join(pluginDir, "application", `${formattedName}Resolver.ts`),
-  applicationContent
-);
-
-// Generar contenido base de domain
-const domainContentObject = `import { Collection } from 'fireorm';
-import { Field, ID, InputType, ObjectType } from 'type-graphql';
-
-@ObjectType()
-@Collection('${formattedName}')
-export class ${formattedName} {
-  @Field(() => ID) id!: string;
-  constructor() {}
-}
-
-@InputType()
-export class ${formattedName}Dto {
-  @Field(() => ID) id!: string;
-  constructor() {}
-}`;
-fs.writeFileSync(
-  path.join(pluginDir, "domain", `${formattedName}.ts`),
-  domainContentObject
-);
-
-const domainContentRepository = `import { ${formattedName}, ${formattedName}Dto } from './${formattedName}';
-
-export interface ${formattedName}Repository {
-  find(id: string): Promise<${formattedName}>;
-  save(entity: ${formattedName}Dto): Promise<boolean>;
-  remove(id: string): Promise<boolean>;
-}`;
-fs.writeFileSync(
-  path.join(pluginDir, "domain", `${formattedName}Repository.ts`),
-  domainContentRepository
-);
-
-// Generar contenido base de infrastructure
-const infrastructureContent = `import { getRepository } from 'fireorm';
-import { ${formattedName} } from '../domain/${formattedName}';
-import { ${formattedName}Repository } from '../domain/${formattedName}Repository';
-
-export class Firestore${formattedName}Repository implements ${formattedName}Repository {
-  constructor() {}
-
-  async find(id: string): Promise<${formattedName}> {
-    return getRepository(${formattedName}).findById(id);
-  }
-
-  async save(entity: ${formattedName}): Promise<boolean> {
-    await getRepository(${formattedName}).create(entity);
-    return true;
-  }
-
-  async remove(id: string): Promise<boolean> {
-    await getRepository(${formattedName}).delete(id);
-    return true;
-  }
-}`;
-fs.writeFileSync(
-  path.join(
-    pluginDir,
-    "infrastructure",
-    `Firestore${formattedName}Repository.ts`
-  ),
-  infrastructureContent
-);
-
 // Generar configuración de Firebase Emulators
 const firebaseConfig = {
   functions: {
@@ -430,13 +299,13 @@ fs.writeFileSync(
 );
 
 const firestoreRules = `rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      match /{document=**} {
+        allow read, write: if request.auth != null;
+      }
     }
-  }
-}`;
+  }`;
 fs.writeFileSync(path.join(baseDir, "firestore.rules"), firestoreRules);
 
 const firestoreIndexes = {
@@ -449,107 +318,109 @@ fs.writeFileSync(
 );
 
 const gitignoreBase = `
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-firebase-debug.log*
-firebase-debug.*.log*
-
-# Firebase cache
-.firebase/
-
-# Firebase config
-
-# Uncomment this if you'd like others to create their own Firebase project.
-# For a team working on the same Firebase project(s), it is recommended to leave
-# it commented so all members can deploy to the same project(s) in .firebaserc.
-# .firebaserc
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Directory for instrumented libs generated by jscoverage/JSCover
-lib-cov
-
-# Coverage directory used by tools like istanbul
-coverage
-
-# nyc test coverage
-.nyc_output
-
-# Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
-
-# Bower dependency directory (https://bower.io/)
-bower_components
-
-# node-waf configuration
-.lock-wscript
-
-# Compiled binary addons (http://nodejs.org/api/addons.html)
-build/Release
-
-# Dependency directories
-node_modules/
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env
-`;
+  # Logs
+  logs
+  *.log
+  npm-debug.log*
+  yarn-debug.log*
+  yarn-error.log*
+  firebase-debug.log*
+  firebase-debug.*.log*
+  
+  # Firebase cache
+  .firebase/
+  
+  # Firebase config
+  
+  # Uncomment this if you'd like others to create their own Firebase project.
+  # For a team working on the same Firebase project(s), it is recommended to leave
+  # it commented so all members can deploy to the same project(s) in .firebaserc.
+  # .firebaserc
+  
+  # Runtime data
+  pids
+  *.pid
+  *.seed
+  *.pid.lock
+  
+  # Directory for instrumented libs generated by jscoverage/JSCover
+  lib-cov
+  
+  # Coverage directory used by tools like istanbul
+  coverage
+  
+  # nyc test coverage
+  .nyc_output
+  
+  # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
+  .grunt
+  
+  # Bower dependency directory (https://bower.io/)
+  bower_components
+  
+  # node-waf configuration
+  .lock-wscript
+  
+  # Compiled binary addons (http://nodejs.org/api/addons.html)
+  build/Release
+  
+  # Dependency directories
+  node_modules/
+  
+  # Optional npm cache directory
+  .npm
+  
+  # Optional eslint cache
+  .eslintcache
+  
+  # Optional REPL history
+  .node_repl_history
+  
+  # Output of 'npm pack'
+  *.tgz
+  
+  # Yarn Integrity file
+  .yarn-integrity
+  
+  # dotenv environment variables file
+  .env
+  `;
 fs.writeFileSync(path.join(baseDir, ".gitignore"), gitignoreBase);
 
 // Generar `index.ts` para el punto de entrada en functions/
 const functionsIndexContent = `import * as functions from 'firebase-functions/v1';
-import { Kernel } from '@eficientis-test/core/Kernel';
-import { GraphQLServer } from '@eficientis-test/core/GraphQLServer';
-
-const kernel = new Kernel();
-
-const initServer = async () => {
-  await kernel.initialize();
-  const resolvers = kernel.getResolvers();
-  if (resolvers.length === 0) throw new Error('❌ No hay resolvers disponibles.');
-  console.log(\`✅ Resolvers cargados: \${resolvers.length}\`);
-  const server = new GraphQLServer(kernel);
-  await server.start();
-  console.log('✅ Servidor GraphQL listo');
-  return server;
-};
-
-exports.backend = functions.region('us-central1').https.onRequest(async (req, res) => {
-  try {
-    const server = await initServer();
-    const app = server.serve();
-    if (req.url.startsWith('/graphql')) return app(req, res);
-    res.status(404).send('NOT FOUND');
-  } catch (error) {
-    console.error('❌ Error en la solicitud:', error);
-    res.status(500).send('Internal Server Error');
-  }
-});
-`;
+  import { Kernel } from '@eficientis-test/core/Kernel';
+  import { GraphQLServer } from '@eficientis-test/core/GraphQLServer';
+  
+  const kernel = new Kernel();
+  
+  const initServer = async () => {
+    await kernel.initialize();
+    const resolvers = kernel.getResolvers();
+    if (resolvers.length === 0) throw new Error('❌ No hay resolvers disponibles.');
+    console.log(\`✅ Resolvers cargados: \${resolvers.length}\`);
+    const server = new GraphQLServer(kernel);
+    await server.start();
+    console.log('✅ Servidor GraphQL listo');
+    return server;
+  };
+  
+  exports.backend = functions.region('us-central1').https.onRequest(async (req, res) => {
+    try {
+      const server = await initServer();
+      const app = server.serve();
+      if (req.url.startsWith('/graphql')) return app(req, res);
+      res.status(404).send('NOT FOUND');
+    } catch (error) {
+      console.error('❌ Error en la solicitud:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+  `;
 fs.writeFileSync(path.join(srcDir, "index.ts"), functionsIndexContent);
 
-console.log(
-  `✅ Plugin ${formattedName} creado en functions/src/plugins/${pluginName.toLowerCase()} correctamente.`
-);
+// Crear archivo de configuracion
+fs.writeFileSync(
+    path.join(configDir, "plugins.config.json"),
+    JSON.stringify({ activePlugins: [] }, null, 2)
+  );
